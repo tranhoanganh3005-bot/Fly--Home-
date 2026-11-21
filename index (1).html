@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Relax Type Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans:wght@400;600;800&family=Noto+Sans+SC:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap">
+<style>
+/* Layout: one phone-width column, a festival-paper card per step; ichimatsu band on top, waves at the foot */
+:root{
+  --bg:#FFFFFF; --paper:#FBEDEC; --ink:#1F2A5A; --muted:#55608A; --accent:#B7282E; --accent-ink:#FFFFFF;
+  --gold:#E3A83B; --line:#EAD7D5; --chip:#FFFFFF;
+  --display:'Dela Gothic One','Noto Sans JP','Noto Sans SC',system-ui,sans-serif;
+  --body:'Noto Sans','Noto Sans SC','Noto Sans JP',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141A33; --paper:#1F2747; --ink:#F3F1F8; --muted:#B9BEDA; --accent:#E2575C; --accent-ink:#FFFFFF;
+  --gold:#F0BF5E; --line:#33406B; --chip:#141A33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141A33; --paper:#1F2747; --ink:#F3F1F8; --muted:#B9BEDA; --accent:#E2575C; --accent-ink:#FFFFFF;
+  --gold:#F0BF5E; --line:#33406B; --chip:#141A33; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.band{height:18px;background:repeating-conic-gradient(var(--accent) 0 25%, var(--bg) 0 50%) 0 0/18px 18px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:15px;letter-spacing:.12em;color:var(--accent)}
+.langs{display:flex;gap:6px;flex-wrap:wrap}
+.langs button{font:600 13px var(--body);padding:6px 10px;border-radius:999px;border:1.5px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer;min-height:34px}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--paper);border-radius:22px;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,8vw,42px);line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(22px,6vw,28px);line-height:1.25;margin:0;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--muted)}
+.balls{display:flex;justify-content:space-between;align-items:flex-start;padding:0 6px;height:120px;position:relative}
+.balls::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;border-radius:5px;background:#8A5A34}
+.ball{display:flex;flex-direction:column;align-items:center}
+.ball i{display:block;width:2px;background:#8A5A34}
+.ball b{display:block;width:34px;height:34px;border-radius:50%}
+@media (prefers-reduced-motion: no-preference){.ball{animation:sway 3.2s ease-in-out infinite;transform-origin:top center}.ball:nth-child(2n){animation-delay:-1.4s}}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.btn{font:800 17px var(--body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:14px;padding:14px 18px;min-height:52px;cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:focus-visible,.opt:focus-visible,.langs button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.progress{display:flex;gap:6px}
+.progress span{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress span.on{background:var(--accent)}
+.qnum{font:800 13px var(--body);letter-spacing:.14em;color:var(--accent)}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;font:600 16px var(--body);color:var(--ink);background:var(--chip);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;min-height:52px;cursor:pointer;display:flex;gap:12px;align-items:center}
+.opt:hover{border-color:var(--accent)}
+.opt .k{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--paper);color:var(--accent);font:800 14px var(--body)}
+.type{font-family:var(--display);font-size:clamp(32px,9vw,44px);line-height:1.1;color:var(--accent)}
+.meter{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:5.5em minmax(0,1fr) 2.5em;gap:10px;align-items:center;font-size:14px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar b{display:block;height:100%;background:var(--accent);border-radius:5px}
+.row .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.match{background:var(--bg);border-radius:16px;padding:16px;display:grid;gap:10px}
+.label{font:800 12px var(--body);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.prod{font-weight:800;font-size:18px}
+.note{font-size:13px;color:var(--muted)}
+.cta{background:var(--ink);color:var(--bg);border-radius:16px;padding:18px;display:grid;gap:8px}
+.cta .label{color:var(--gold)}
+.foot{font-size:12px;color:var(--muted);text-align:center}
+.waves{height:28px;background-color:var(--ink);background-image:radial-gradient(circle at 50% 100%, transparent 38%, rgba(255,255,255,.18) 38%, rgba(255,255,255,.18) 46%, transparent 46%, transparent 60%, rgba(255,255,255,.18) 60%, rgba(255,255,255,.18) 68%, transparent 68%);background-size:40px 20px}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div class="band" aria-hidden="true"></div>
+<main class="wrap">
+  <div class="top">
+    <div class="brand">FLY RELAXED</div>
+    <div class="langs" role="group" aria-label="Language" id="langs"></div>
+  </div>
+  <section id="view" aria-live="polite"></section>
+  <p class="foot" id="foot"></p>
+</main>
+<div class="waves" aria-hidden="true"></div>
+
+<script>
+const T = {
+en:{name:"English", hook:"What's your Relax Type?", sub:"5 quick questions. Find what helps you unwind on this trip and back home.", time:"About 30 seconds", start:"Start", q:"Question",
+ qs:[
+  ["Pick your travel mode",["Explorer: I walk until my feet give up","Foodie & shopper: malls, markets, more queues","Content creator: maps, photos, posts all day","Business trip: meetings and a laptop"]],
+  ["Your phone's screen-time report says…",["Under 3 hours a day","3–6 hours","6–9 hours","Please don't ask"]],
+  ["On a long flight, you're the one who…",["Falls asleep before take-off","Watches movie after movie","Opens the laptop","Walks the aisle every hour"]],
+  ["After a long day, what complains first?",["My eyes","Neck and shoulders","Legs and feet","Lower back"]],
+  ["Pick your way to unwind",["A warm bath","A cool breeze and a cold drink","A dark, quiet room","A slow stretch"]]],
+ your:"Your Relax Type", where:"Where your tiredness goes", areas:["Eyes","Shoulders","Feet","Back"], match:"Your match", trip:"On this trip", home:"Back home",
+ avail:"Ask staff whether this item is sold in Singapore.", madein:"Made in Japan by Kao.",
+ ctaL:"Pick it up today", cta:"At DON DON DONKI Jewel Changi Airport (B1): buy 10+ sheets of MegRhythm Steam Eye Mask and pull 1 lucky string. Every ball wins a 5–15% OFF coupon.",
+ again:"Try again", foot:"Student project concept. Not an official Kao or DON DON DONKI page.",
+ types:{
+  eye:["Screen Voyager","Maps, photos, screens: your eyes do the heavy lifting. A few minutes of warmth helps you switch off.","MegRhythm Steam Eye Mask","Gentle steam warmth around 40°C.","In your hotel after a day of maps and photos, before you sleep.","After a long screen day, put the phone down and warm up for a few minutes before bed."],
+  shoulder:["Focused Achiever","Bags, laptop, long sitting: you carry the trip on your neck and shoulders.","MegRhythm steam warming sheet for neck & shoulders","Steam warmth for stiff areas.","Back at the hotel after meetings or heavy bags.","During a break from the desk."],
+  foot:["Restless Explorer","You measure trips in steps. Your legs deserve a cool reset.","Kao carbonated cooling gel sheet for feet","A cool, refreshing feeling for tired legs.","Back at your hotel after a full walking day.","After a day of standing or walking."],
+  back:["Steady Traveler","Long seats and long queues land on your lower back. Gentle warmth suits you.","MegRhythm steam warming sheet for the lower back","Steam warmth you wear while you rest.","At your hotel after a long ride or flight.","After long hours of sitting."]}},
+zh:{name:"中文", hook:"你是哪种放松类型？", sub:"5 道小题，找到旅途中和回家后最适合你的放松方式。", time:"约 30 秒", start:"开始", q:"问题",
+ qs:[
+  ["选择你的旅行模式",["探险型：走到脚软为止","吃货购物型：商场、市集、排不完的队","内容创作型：整天看地图、拍照、发帖","出差型：开会和笔记本电脑"]],
+  ["你的手机屏幕使用时间报告显示……",["每天少于 3 小时","3–6 小时","6–9 小时","别问了"]],
+  ["长途飞行时，你通常是那个……",["起飞前就睡着的人","一部接一部看电影的人","打开笔记本电脑的人","每小时都要在走道走一走的人"]],
+  ["忙了一天，哪里最先喊累？",["眼睛","脖子和肩膀","腿和脚","腰"]],
+  ["选一种放松方式",["泡个热水澡","吹凉风、喝冷饮","待在安静的暗房间","慢慢拉伸"]]],
+ your:"你的放松类型", where:"你的疲劳集中在哪里", areas:["眼睛","肩颈","脚","腰"], match:"推荐给你", trip:"旅途中", home:"回家后",
+ avail:"该商品是否在新加坡销售，请向店员咨询。", madein:"日本花王出品。",
+ ctaL:"今天就带走", cta:"星耀樟宜 DON DON DONKI（B1）：购买 MegRhythm 蒸汽眼罩 10 片以上，即可拉一次幸运绳。每球有奖，可获 95折–85折优惠券。",
+ again:"再测一次", foot:"学生项目提案，非花王或 DON DON DONKI 官方页面。",
+ types:{
+  eye:["屏幕旅人","地图、照片、屏幕，你的眼睛最辛苦。几分钟的温热，帮你切换到休息模式。","MegRhythm 蒸汽眼罩","约 40°C 的温和蒸汽。","在酒店结束一天的地图和拍照后，睡前使用。","长时间看屏幕后，放下手机，睡前温热几分钟。"],
+  shoulder:["专注实干家","背包、电脑、久坐，旅途的重量都压在你的肩颈上。","MegRhythm 肩颈蒸汽热敷贴","为僵硬部位带来蒸汽温热。","开完会或提完重物后，回到酒店使用。","工作间隙休息时。"],
+  foot:["停不下来的探险家","你用步数来记录旅行，双腿值得一次清凉的重置。","花王 碳酸清凉足部凝胶贴","给疲惫的双腿带来清凉感。","走了一整天后，回到酒店使用。","站立或走路一整天之后。"],
+  back:["稳重旅行者","长时间坐车、排队，压力都落在腰上。温和的温热最适合你。","MegRhythm 腰部蒸汽热敷贴","休息时贴上的蒸汽温热。","长途乘车或飞行后，在酒店使用。","久坐之后。"]}},
+id:{name:"Bahasa", hook:"Apa Tipe Relaksasimu?", sub:"5 pertanyaan singkat. Temukan cara bersantai yang cocok untukmu selama liburan dan di rumah.", time:"Sekitar 30 detik", start:"Mulai", q:"Pertanyaan",
+ qs:[
+  ["Pilih gaya perjalananmu",["Penjelajah: jalan terus sampai kaki menyerah","Kuliner & belanja: mal, pasar, antre lagi","Kreator konten: peta, foto, unggahan seharian","Perjalanan dinas: rapat dan laptop"]],
+  ["Laporan waktu layar ponselmu bilang…",["Kurang dari 3 jam sehari","3–6 jam","6–9 jam","Jangan ditanya"]],
+  ["Di penerbangan panjang, kamu yang…",["Tertidur sebelum lepas landas","Menonton film terus-menerus","Membuka laptop","Berjalan di lorong tiap jam"]],
+  ["Setelah hari yang panjang, apa yang paling dulu lelah?",["Mata","Leher dan bahu","Kaki","Punggung bawah"]],
+  ["Pilih caramu bersantai",["Mandi air hangat","Angin sejuk dan minuman dingin","Kamar gelap dan tenang","Peregangan pelan"]]],
+ your:"Tipe Relaksasimu", where:"Ke mana lelahmu pergi", areas:["Mata","Bahu","Kaki","Punggung"], match:"Cocok untukmu", trip:"Selama perjalanan", home:"Di rumah",
+ avail:"Tanyakan kepada staf apakah produk ini dijual di Singapura.", madein:"Buatan Jepang oleh Kao.",
+ ctaL:"Ambil hari ini", cta:"Di DON DON DONKI Jewel Changi Airport (B1): beli 10+ lembar MegRhythm Steam Eye Mask dan tarik 1 tali keberuntungan. Setiap bola berhadiah kupon diskon 5–15%.",
+ again:"Coba lagi", foot:"Konsep proyek mahasiswa. Bukan halaman resmi Kao atau DON DON DONKI.",
+ types:{
+  eye:["Penjelajah Layar","Peta, foto, layar: matamu bekerja paling keras. Beberapa menit kehangatan membantumu beristirahat.","MegRhythm Steam Eye Mask","Uap hangat lembut sekitar 40°C.","Di hotel setelah seharian melihat peta dan foto, sebelum tidur.","Setelah lama menatap layar, taruh ponsel dan hangatkan mata beberapa menit sebelum tidur."],
+  shoulder:["Si Fokus","Tas, laptop, duduk lama: perjalananmu bertumpu di leher dan bahu.","Lembar penghangat uap MegRhythm untuk leher & bahu","Kehangatan uap untuk area yang kaku.","Di hotel setelah rapat atau membawa tas berat.","Saat istirahat dari meja kerja."],
+  foot:["Penjelajah Tak Kenal Lelah","Kamu mengukur perjalanan dengan langkah. Kakimu layak disegarkan.","Lembar gel pendingin karbonasi Kao untuk kaki","Rasa sejuk dan segar untuk kaki yang lelah.","Di hotel setelah seharian berjalan.","Setelah seharian berdiri atau berjalan."],
+  back:["Pelancong Tenang","Duduk lama dan antre panjang terasa di punggung bawah. Kehangatan lembut cocok untukmu.","Lembar penghangat uap MegRhythm untuk punggung bawah","Kehangatan uap saat kamu beristirahat.","Di hotel setelah perjalanan darat atau udara yang panjang.","Setelah lama duduk."]}},
+vi:{name:"Tiếng Việt", hook:"Bạn thuộc kiểu thư giãn nào?", sub:"5 câu hỏi nhanh. Tìm cách thư giãn hợp với bạn trong chuyến đi và khi về nhà.", time:"Khoảng 30 giây", start:"Bắt đầu", q:"Câu",
+ qs:[
+  ["Chọn phong cách du lịch của bạn",["Khám phá: đi bộ đến khi mỏi nhừ chân","Ăn uống & mua sắm: trung tâm thương mại, chợ, xếp hàng","Sáng tạo nội dung: bản đồ, chụp ảnh, đăng bài cả ngày","Công tác: họp hành và laptop"]],
+  ["Báo cáo thời gian dùng điện thoại của bạn nói rằng…",["Dưới 3 tiếng mỗi ngày","3–6 tiếng","6–9 tiếng","Đừng hỏi nữa"]],
+  ["Trên chuyến bay dài, bạn là người…",["Ngủ trước khi máy bay cất cánh","Xem hết phim này đến phim khác","Mở laptop ra làm việc","Đi lại trong lối đi mỗi tiếng"]],
+  ["Sau một ngày dài, chỗ nào mỏi đầu tiên?",["Mắt","Cổ và vai","Chân","Thắt lưng"]],
+  ["Chọn cách thư giãn của bạn",["Tắm nước ấm","Gió mát và đồ uống lạnh","Phòng tối, yên tĩnh","Giãn cơ chậm rãi"]]],
+ your:"Kiểu thư giãn của bạn", where:"Mệt mỏi dồn vào đâu", areas:["Mắt","Vai","Chân","Lưng"], match:"Gợi ý cho bạn", trip:"Trong chuyến đi", home:"Khi về nhà",
+ avail:"Hãy hỏi nhân viên xem sản phẩm này có bán ở Singapore không.", madein:"Sản xuất tại Nhật Bản bởi Kao.",
+ ctaL:"Mua ngay hôm nay", cta:"Tại DON DON DONKI Jewel Changi Airport (B1): mua từ 10 miếng mặt nạ hơi ấm MegRhythm để kéo 1 sợi dây may mắn. Quả bóng nào cũng có quà, nhận coupon giảm 5–15%.",
+ again:"Làm lại", foot:"Ý tưởng dự án của sinh viên. Không phải trang chính thức của Kao hay DON DON DONKI.",
+ types:{
+  eye:["Người du hành màn hình","Bản đồ, ảnh, màn hình: đôi mắt làm việc nhiều nhất. Vài phút ấm áp giúp bạn chuyển sang chế độ nghỉ.","Mặt nạ hơi ấm MegRhythm","Hơi nước ấm dịu khoảng 40°C.","Ở khách sạn sau một ngày xem bản đồ và chụp ảnh, trước khi ngủ.","Sau một ngày nhìn màn hình nhiều, đặt điện thoại xuống và làm ấm vài phút trước khi ngủ."],
+  shoulder:["Người tập trung","Túi xách, laptop, ngồi lâu: cả chuyến đi đè lên cổ và vai bạn.","Miếng dán hơi ấm MegRhythm cho cổ & vai","Hơi ấm cho vùng bị căng cứng.","Về khách sạn sau buổi họp hoặc xách đồ nặng.","Khi nghỉ giải lao giữa giờ làm việc."],
+  foot:["Nhà thám hiểm không ngừng nghỉ","Bạn đo chuyến đi bằng số bước chân. Đôi chân xứng đáng được làm mát.","Miếng gel mát có ga Kao cho chân","Cảm giác mát, sảng khoái cho đôi chân mỏi.","Về khách sạn sau một ngày đi bộ.","Sau một ngày đứng hoặc đi bộ nhiều."],
+  back:["Người du lịch điềm tĩnh","Ngồi xe lâu, xếp hàng dài, tất cả dồn xuống thắt lưng. Hơi ấm dịu nhẹ hợp với bạn.","Miếng dán hơi ấm MegRhythm cho thắt lưng","Hơi ấm dùng trong lúc bạn nghỉ ngơi.","Ở khách sạn sau chuyến đi xe hoặc chuyến bay dài.","Sau nhiều giờ ngồi."]}},
+ja:{name:"日本語", hook:"あなたのリラックスタイプは？", sub:"5つの質問で、旅行中にも帰国後にも合うリラックス方法がわかります。", time:"約30秒", start:"はじめる", q:"質問",
+ qs:[
+  ["あなたの旅のスタイルは？",["探検型：足が限界まで歩く","グルメ・買い物型：モール、市場、行列","発信型：地図・写真・投稿で一日中スマホ","出張型：会議とノートPC"]],
+  ["スマホのスクリーンタイムは…",["1日3時間未満","3〜6時間","6〜9時間","聞かないで"]],
+  ["長時間フライトで、あなたは…",["離陸前に寝ている","映画を何本も見る","ノートPCを開く","1時間ごとに通路を歩く"]],
+  ["長い一日のあと、最初に疲れを訴えるのは？",["目","首と肩","脚と足","腰"]],
+  ["好きなリラックス方法は？",["温かいお風呂","涼しい風と冷たい飲み物","暗くて静かな部屋","ゆっくりストレッチ"]]],
+ your:"あなたのリラックスタイプ", where:"疲れがたまりやすい場所", areas:["目","肩","足","腰"], match:"おすすめ", trip:"旅行中に", home:"帰国後の毎日に",
+ avail:"シンガポールでの取り扱いは店舗スタッフにご確認ください。", madein:"花王の日本製品です。",
+ ctaL:"今日、手に取るなら", cta:"DON DON DONKI ジュエル・チャンギ・エアポート店（B1）で、めぐりズム 蒸気でホットアイマスクを10枚以上買うと、ひもくじを1回引けます。全員に5〜15%OFFクーポン。",
+ again:"もう一度", foot:"学生プロジェクトの提案です。花王・DON DON DONKIの公式ページではありません。",
+ types:{
+  eye:["スクリーン・ボイジャー","地図、写真、画面。いちばん働いているのは目。数分のぬくもりで、オフに切り替えましょう。","めぐりズム 蒸気でホットアイマスク","約40℃のやさしい蒸気。","地図と写真の一日を終えたホテルで、寝る前に。","画面を見続けた日は、スマホを置いて寝る前の数分に。"],
+  shoulder:["フォーカス・アチーバー","荷物、PC、座りっぱなし。旅の重さは首と肩に。","めぐりズム 蒸気の温熱シート 首肩用","こわばった部分に蒸気のぬくもり。","会議や重い荷物のあと、ホテルで。","デスクワークの合間に。"],
+  foot:["止まらないエクスプローラー","旅を歩数で測るあなた。脚にはひんやりリセットを。","花王 貼る炭酸ジェルパック FOOT","疲れた脚に、ひんやり爽快感。","一日歩いたあと、ホテルで。","立ち仕事や歩いた日の終わりに。"],
+  back:["ステディ・トラベラー","長い移動と行列の疲れは腰に。やさしいぬくもりが合うタイプ。","めぐりズム 蒸気の温熱シート 腰用","休みながら使える蒸気のぬくもり。","長い移動やフライトのあと、ホテルで。","長時間座ったあとに。"]}}
+};
+// points per answer: [eye, shoulder, foot, back]
+const W = [
+ [[0,0,2,0],[0,0,1,1],[2,0,0,0],[0,2,0,0]],
+ [[0,0,0,0],[1,0,0,0],[2,1,0,0],[3,1,0,0]],
+ [[1,0,0,0],[2,0,0,0],[0,2,0,0],[0,0,1,1]],
+ [[3,0,0,0],[0,3,0,0],[0,0,3,0],[0,0,0,3]],
+ [[1,1,0,1],[0,0,2,0],[2,0,0,0],[0,1,0,1]]];
+const KEYS = ["eye","shoulder","foot","back"];
+const BALLS = ["#B7282E","#FFFFFF","#1F2A5A","#E3A83B","#B7282E","#FFFFFF"];
+
+function pickLang(){
+  const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"]).map(s => String(s).toLowerCase());
+  for (const l of list){
+    if (l.startsWith("zh")) return "zh";
+    if (l.startsWith("id")) return "id";
+    if (l.startsWith("ja")) return "ja";
+    if (l.startsWith("vi")) return "vi";
+    if (l.startsWith("en")) return "en";
+  }
+  return "en";
+}
+let lang = pickLang();
+try { const s = localStorage.getItem("relax-lang"); if (s && T[s]) lang = s; } catch(e) {}
+let step = -1, answers = [];
+
+const view = document.getElementById("view");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function renderLangs(){
+  const box = document.getElementById("langs");
+  box.innerHTML = Object.keys(T).map(k => `<button type="button" data-l="${k}" aria-pressed="${k===lang}">${T[k].name}</button>`).join("");
+  box.querySelectorAll("button").forEach(b => b.onclick = () => { lang = b.dataset.l; try{localStorage.setItem("relax-lang", lang)}catch(e){} render(); });
+}
+function ballsHTML(){
+  const lens = [34,58,24,48,30,62];
+  return `<div class="balls" aria-hidden="true">${BALLS.map((c,i)=>`<div class="ball"><i style="height:${lens[i]}px"></i><b style="background:${c};${c==="#FFFFFF"?"border:3px solid #B7282E;box-sizing:border-box":""}"></b></div>`).join("")}</div>`;
+}
+function render(){
+  const t = T[lang];
+  document.documentElement.lang = lang === "zh" ? "zh-Hans" : lang;
+  renderLangs();
+  document.getElementById("foot").textContent = t.foot;
+  if (step < 0){
+    view.innerHTML = `<div class="card">${ballsHTML()}<h1>${esc(t.hook)}</h1><p class="muted">${esc(t.sub)}</p><button class="btn" id="go">${esc(t.start)} · ${esc(t.time)}</button></div>`;
+    document.getElementById("go").onclick = () => { step = 0; answers = []; render(); };
+    return;
+  }
+  if (step < t.qs.length){
+    const [q, opts] = t.qs[step];
+    const prog = t.qs.map((_,i)=>`<span class="${i<=step?"on":""}"></span>`).join("");
+    view.innerHTML = `<div class="card"><div class="progress" aria-hidden="true">${prog}</div><div class="qnum">${esc(t.q)} ${step+1} / ${t.qs.length}</div><h2>${esc(q)}</h2><div class="opts">${opts.map((o,i)=>`<button type="button" class="opt" data-i="${i}"><span class="k">${"ABCD"[i]}</span><span>${esc(o)}</span></button>`).join("")}</div></div>`;
+    view.querySelectorAll(".opt").forEach(b => b.onclick = () => { answers[step] = +b.dataset.i; step++; render(); });
+    view.querySelector(".opt").focus({preventScroll:true});
+    return;
+  }
+  const score = [0,0,0,0];
+  answers.forEach((a,qi) => W[qi][a].forEach((p,k) => score[k] += p));
+  let best = 0; score.forEach((v,k) => { if (v > score[best]) best = k; });
+  const key = KEYS[best], ty = t.types[key], max = Math.max(...score, 1);
+  const rows = score.map((v,k)=>`<div class="row"><span>${esc(t.areas[k])}</span><div class="bar"><b style="width:${Math.round(v/max*100)}%"></b></div><span class="v">${Math.round(v/max*100)}</span></div>`).join("");
+  view.innerHTML = `<div class="card">
+    <div class="label">${esc(t.your)}</div>
+    <div class="type">${esc(ty[0])}</div>
+    <p>${esc(ty[1])}</p>
+    <div class="meter"><div class="label">${esc(t.where)}</div>${rows}</div>
+    <div class="match"><div class="label">${esc(t.match)}</div><div class="prod">${esc(ty[2])}</div><p class="muted">${esc(ty[3])} ${esc(t.madein)}</p>
+      <div><div class="label">${esc(t.trip)}</div><p>${esc(ty[4])}</p></div>
+      <div><div class="label">${esc(t.home)}</div><p>${esc(ty[5])}</p></div>
+      ${key==="eye" ? "" : `<p class="note">${esc(t.avail)}</p>`}</div>
+    <div class="cta"><div class="label">${esc(t.ctaL)}</div><p>${esc(t.cta)}</p></div>
+    <button class="btn ghost" id="again">${esc(t.again)}</button></div>`;
+  document.getElementById("again").onclick = () => { step = -1; answers = []; render(); };
+}
+render();
+</script>
+
+</body>
+</html>
